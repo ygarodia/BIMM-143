@@ -1,0 +1,434 @@
+---
+title: "Unsupervised Learning Analysis of Human Breast Cancer Cells"
+author: "Yash Garodia"
+date: "10/02/2022"
+output: pdf_document
+---
+
+First we use the read.csv function to import the data. 
+
+```{r}
+#importing the data 
+
+fna.data <- "WisconsinCancer.csv"
+wisc.df <-read.csv(fna.data, row.names = 1)
+
+#head(wisc.df)
+#View(wisc.df)
+```
+But we don't want the first column as they contain answers!
+
+```{r}
+#to get rid of the first column 
+wisc.data <- wisc.df[,-1]
+```
+Now we setup a new vector called diagnosis that contains the data from the diagnosis column of the original dataset!
+
+```{r}
+#Creating the diagnosis vector for later
+diagnosis  <- factor(wisc.df[,1])
+```
+
+## 1.Exploratory Data Analysis 
+
+> Q1) How many observations are in this dataset?
+
+```{r}
+#Number of rows are the number of observations
+nrow(wisc.data)
+```
+There are 569 observations in this dataset
+
+> Q2. How many of the observations have a malignant diagnosis?
+
+```{r}
+#grouping the malignant diagnosis results in one variable
+malignant <- grep("M", diagnosis)
+length(malignant)
+```
+There are 212 malignant observations. 
+
+>Q3. How many variables/features in the data are suffixed with _mean?
+
+```{r}
+#First we group the headers containing the string "_mean"
+var.mean <- grep("_mean", colnames(wisc.data))
+#Then we count the number of values in the group
+length(var.mean)
+
+```
+There are 10 variables suffixed with "_mean". 
+
+## 2. Principal Component Analysis
+
+#Performing PCA
+
+First we need to calculate the mean and standard deviations of wisc.data to determine if the data should be scaled. 
+
+```{r}
+#checking column means and sd values 
+colMeans(wisc.data)
+
+apply(wisc.data, 2, sd)
+```
+
+```{r}
+#executing pca
+wisc.pr <- prcomp(wisc.data, scale. = TRUE)
+summary(wisc.pr)
+```
+Scaling clearly shows that other PCs apart from PC1 also capture significant levels of the original variance. 
+
+> Q4) From your results, what proportion of the original variance is captured by the first principal components (PC1)?
+
+As seen in the proportion of variance section for PC1 of the summary, 0.4427 or 44.27% of the original variance is captured by PC1. 
+
+> Q5) How many principal components (PCs) are required to describe at least 70% of the original variance in the data?
+
+As seen in the cumulative proportion section in the summary, 3 principal components are required to describe at least 70% of the original variance in the data. 
+
+> Q6) How many principal components (PCs) are required to describe at least 90% of the original variance in the data?
+
+As seen in the cumulative proportion section in the summary, 7 principal components are required to describe at least 90% of the original variance in the data. 
+
+#Interpreting PCA results
+
+First, we create a biplot: 
+
+```{r}
+biplot(wisc.pr)
+```
+
+> Q7) What stands out to you about this plot? Is it easy or difficult to understand? Why?
+
+This plot is very difficult to understand as everything in the plot is cluttered, making it hard to read any of the data. What stands out to me about this plot is that this scatter plot doesn't have any points clearly shown, but rather the label for each value represents the point, making it harder to read the values.
+
+We can generate a more comprehensible standard scatter plot using this function: 
+
+```{r}
+# Scatter plot observations by components 1 and 2
+plot(wisc.pr$x[,1], wisc.pr$x[,2], col = diagnosis, xlab = "PC1", ylab = "PC2")
+```
+
+>Q8) Generate a similar plot for principal components 1 and 3. What do you notice about these plots?
+
+To do this we repeat the function used above, replacing the code for plotting PC2 with PC3. 
+```{r}
+plot(wisc.pr$x[,1], wisc.pr$x[,3], col = diagnosis, xlab = "PC1", ylab = "PC3")
+```
+One thing I notice about both these plots is that they both show that there is a separation between the results for benign and maligned samples. Malignant samples are more spread out than the benign samples, suggesting that they have greater variation in results. 
+
+Lets see if we can use ggplot2 to make fancy figures of the same: 
+```{r}
+# Create a data.frame for ggplot
+df <- as.data.frame(wisc.pr$x)
+df$diagnosis <- diagnosis
+
+#load the ggplot2 package
+library(ggplot2)
+
+#make a scatter plot colored by diagnosis 
+ggplot(df) + aes(PC1, PC2, col = diagnosis) + geom_point()
+```
+
+#Variance Explained 
+
+First, we calculate variance of each principal component. 
+
+```{r}
+# Calculate variance of each component
+pr.var <- wisc.pr$sdev^2
+head(pr.var)
+```
+Then, to calculate the total variance explained by each principal component, we divide the variance of each component by the total variance. 
+
+```{r}
+# Variance explained by each principal component: pve
+pve <- pr.var / sum(pr.var)
+
+# Plot variance explained for each principal component
+plot(pve, xlab = "Principal Component", 
+     ylab = "Proportion of Variance Explained", 
+     ylim = c(0, 1), type = "o")
+```
+```{r}
+# Alternative scree plot of the same data, note data driven y-axis
+barplot(pve, ylab = "Precent of Variance Explained",
+     names.arg=paste0("PC",1:length(pve)), las=2, axes = FALSE)
+axis(2, at=pve, labels=round(pve,2)*100 )
+```
+
+There are quite a few CRAN packages that are helpful for PCA. This includes the factoextra package. Feel free to explore this package. For example:
+
+```{r}
+#ggplot based graph
+#install.packages("factoextra")
+library(factoextra)
+fviz_eig(wisc.pr, addlabels = TRUE)
+```
+
+# Communicating PCA results
+
+> Q9) For the first principal component, what is the component of the loading vector (i.e. wisc.pr$rotation[,1]) for the feature concave.points_mean?
+
+```{r}
+wisc.pr$rotation[,1]
+```
+The value for the component of the loading vector for PC1 for concave.points_mean is -0.26085376. 
+
+> Q10) What is the minimum number of principal components required to explain 80% of the variance of the data?
+
+Looking at the barplot, a minimum of 5 principal components are required to explain 80% of the variance of the data.
+
+## 3. Hierarchical Clustering 
+
+First we scale the wisc.data and assign it to data.scaled. 
+
+```{r}
+data.scaled <- scale(wisc.data)
+```
+
+Then we calculate the euclidean distances between all pairs of observations and assign it to data.dist
+
+```{r}
+data.dist <- dist(data.scaled)
+```
+
+Finally, we create a hierarchical clustering model using a complete linkage. 
+
+```{r}
+wisc.hclust <- hclust(data.dist, method = "complete")
+```
+
+# Results of Hierarchical Clustering 
+
+> Q11) Using the plot() and abline() functions, what is the height at which the clustering model has 4 clusters?
+
+The height at which the clustering model has 4 clusters is 20.
+```{r}
+plot(wisc.hclust)
+abline(h = 19, col="red", lty=2)
+```
+
+#Selecting number of clusters 
+
+First we use cutree() to cut the tree so that it has 4 clusters. 
+
+```{r}
+wisc.hclust.clusters <- cutree(wisc.hclust, k = 4)
+```
+
+Then using the table() function we can compare the cluster membership to the actual diagnoses. 
+
+```{r}
+table(wisc.hclust.clusters, diagnosis)
+```
+
+> Q12) Can you find a better cluster vs diagnoses match by cutting into a different number of clusters between 2 and 10?
+
+Lets try having the number of clusters to equal 2: 
+
+```{r}
+wisc.hclust.clusters1 <- cutree(wisc.hclust, k = 2)
+table(wisc.hclust.clusters1, diagnosis)
+```
+
+Here we see that cluster 1 has more benign cases than malignant, but cluster 1 only has malignant cases. 
+
+On the other hand, if we have the number of cases equal to 6:
+
+```{r}
+wisc.hclust.clusters2 <- cutree(wisc.hclust, k = 5)
+table(wisc.hclust.clusters2, diagnosis)
+```
+The cluster vs diagnosis match is clearer now. The system works in such a way that clusters with higher benign cases will have very few malignant cases and vice versa. This strongly suggests that there are significant differences between benign and malignant cases. 
+
+#Using different methods
+
+> Q13) As we discussed in our last class videos there are number of different “methods” we can use to combine points during the hierarchical clustering procedure. These include "single", "complete", "average" and (my favorite) "ward.D2". Which method gives your favorite results for the same data.dist dataset? Explain your reasoning.
+
+Since ward.D2 is professor's favorite, lets try this one out first: 
+
+```{r}
+wisc.hclust.single <- hclust(data.dist, method = "single")
+plot(wisc.hclust.single)
+```
+
+This is pretty cool, looks like a decay curve. Lets try average. 
+
+```{r}
+wisc.hclust.avg<- hclust(data.dist, method = "average")
+plot(wisc.hclust.avg)
+```
+EEK this looks kinda disturbing. Lets try professors favorite, ward.d2
+
+```{r}
+wisc.hclust.ward.d2<- hclust(data.dist, method = "ward.D2")
+plot(wisc.hclust.ward.d2)
+```
+
+Hm. its a tough choice between ward.D2 and single. I think I like single more because it is unique and the fact that the clusters are in a curved type layout make it easier to identify the common ancestors. It is easier to gauge the level of similarity between observations this way. 
+
+## K-means clustering
+
+# K-means clustering and comparing results 
+
+Lets create a k-means model on wisc.data, scaling and creating two clusters corresponding to the 2 diagnoses, with the algorithm repeated 20 times: 
+
+```{r}
+wisc.km <- kmeans(data.scaled, centers = 2, nstart = 20)
+```
+
+Then we can use the table() function to compare the cluster membership of the k-means model (wisc.km$cluster) to the actual diagnoses contained in the diagnosis vector.
+
+```{r}
+table( wisc.km$cluster, diagnosis)
+```
+
+> Q14) How well does k-means separate the two diagnoses? How does it compare to your hclust results?
+
+Clearly we can see that kmeans clustering is giving a clearer separation versus hclust clustering. In cluster 1 for hclust the difference between malignant and benign observations isn't as much, whereas there is a stark contrast in cases for kmer clustering. In cluster 1 there are much more maligned cases for kmer clustering and in cluster 2 there are much more benign cases. 
+
+Lets bring the result for hclust here so we can compare: 
+```{r}
+table(wisc.km$cluster, wisc.hclust.clusters)
+```
+As we can see here, 3 clusters of hclust (1,2,4) are equivalent to one cluster of kmeans and the other cluster is equivalent to the other kmeans cluster. Kmeans was very good at separating the diagnoses, and was better.
+
+## 5.Combining methods 
+
+# Clustering PCA results 
+
+> Using the minimum number of principal components required to describe at least 90% of the variability in the data, lets create a hierarchical clustering model with the linkage method="ward.D2" and assign it to wisc.pr.hclust.  
+
+In order to answer this question, we must look at the proportion of variability that each PC covers, and the cumulative variability. In order to do this we need to take a look at the summary of running principal components analysis on wisc.data. 
+```{r}
+summary(wisc.pr)
+```
+Through this, we see that the 7 PCs are needed to cover a cumulative proportion of 90%. Using this, we can now create the hierarchical clustering model: 
+
+```{r}
+data.dist.90 <- dist(wisc.pr$x[,1:7])
+wisc.pr.hclust <- hclust(data.dist.90, method = "ward.D2" )
+plot(wisc.pr.hclust)
+
+```
+
+```{r}
+grps <- cutree(wisc.pr.hclust, k=2)
+table(grps)
+```
+```{r}
+table(grps, diagnosis)
+```
+```{r}
+plot(wisc.pr$x[,1:2], col=grps)
+```
+
+```{r}
+plot(wisc.pr$x[,1:2], col=diagnosis)
+```
+
+Note the color swap here as the hclust cluster 1 is mostly “M” and cluster 2 is mostly “B” as we saw from the results of calling table(grps, diagnosis). To match things up we can turn our groups into a factor and reorder the levels so cluster 2 comes first and thus gets the first color (black) and cluster 1 gets the second color (red).
+
+```{r}
+g <- as.factor(grps)
+levels(g)
+```
+```{r}
+g <- relevel(g,2)
+levels(g)
+```
+```{r}
+# Plot using our re-ordered factor 
+plot(wisc.pr$x[,1:2], col=g)
+```
+
+We can be fancy and look in 3D with the rgl or plotly packages. Note that this output will not work well with PDF format reports yet so feel free to skip this optional step for your PDF report. If you have difficulty installing the rgl package on mac then you will likely need to install the XQuartz package from here: https://www.xquartz.org. There are also lots of other packages (like plotly) that can make interactive 3D plots.
+
+```{r}
+library(rgl)
+plot3d(wisc.pr$x[,1:3], xlab="PC 1", ylab="PC 2", zlab="PC 3", cex=1.5, size=1, type="s", col=grps)
+
+```
+
+To include the interactive rgl plot in your HTML renderd lab report (not PDF) you can add the R code rglwidget(width = 400, height = 400) after you call the plot3d() function. It will look just like the plot above. Try rotating and zooming on this 3D plot.
+
+```{r}
+plot3d(wisc.pr$x[,1:3], xlab="PC 1", ylab="PC 2", zlab="PC 3", cex=1.5, size=1, type="s", col=grps)
+rglwidget(width = 400, height = 400)
+```
+
+```{r}
+## Use the distance along the first 7 PCs for clustering i.e. wisc.pr$x[, 1:7]
+wisc.pr.hclust <- hclust(data.dist.90, method="ward.D2")
+```
+
+Cut this hierarchical clustering model into 2 clusters and assign the results to wisc.pr.hclust.clusters.
+
+```{r}
+wisc.pr.hclust.clusters <- cutree(wisc.pr.hclust, k=2)
+```
+
+> Q15)  How well does the newly created model with four clusters separate out the two diagnoses?
+
+```{r}
+# Compare to actual diagnoses
+table(wisc.pr.hclust.clusters, diagnosis )
+```
+It separates the diagnoses pretty well and in a way that one cluster has more maligned results (cluster 1) while the other has more benign results (cluster 2). 
+
+> Q16) How well do the k-means and hierarchical clustering models you created in previous sections (i.e. before PCA) do in terms of separating the diagnoses? Again, use the table() function to compare the output of each model (wisc.km$cluster and wisc.hclust.clusters) with the vector containing the actual diagnoses.
+
+```{r}
+#kmeans clustering
+table(wisc.km$cluster, diagnosis)
+#hclust from previous section
+table(wisc.hclust.clusters, diagnosis)
+```
+The kmeans clustering does a good job as it separates the diagnoses in a way that one cluster has more maligned results (cluster 1) while the other has more benign results (cluster 2).
+
+The hclust clustering shows that cluster 1,2 and 4 have more maligned cases while 3 has significantly more benign cases. I think kmeans clustering does a better job though. 
+
+## 6. Sensitivity/Specificity
+
+Sensitivity refers to a test’s ability to correctly detect ill patients who do have the condition. In our example here the sensitivity is the total number of samples in the cluster identified as predominantly malignant (cancerous) divided by the total number of known malignant samples. In other words: TP/(TP+FN).
+
+Specificity relates to a test’s ability to correctly reject healthy patients without a condition. In our example specificity is the proportion of benign (not cancerous) samples in the cluster identified as predominantly benign that are known to be benign. In other words: TN/(TN+FN).
+
+> Q17. Which of your analysis procedures resulted in a clustering model with the best specificity? How about sensitivity?
+
+There are a total of 212 malignant and 357 benign cancer results. Based on the results, its clear that kmer clustering and the hclustering on the original data were the most specific as they identified the highest proportion of benign samples, with 343 out of 357 being identified in one cluster. The most sensitive analytical model was the newly created hclust model with 2 clusters as it identified the most maligned cases in the maligned cluster, that is 188 cases. 
+
+In order to compare k-means clustering with hclust, we must take model results with equal number of clusters. Lets take the example of k=2. 
+
+```{r}
+table(wisc.km$cluster, diagnosis)
+table(wisc.pr.hclust.clusters, diagnosis )
+```
+Sensitivity equals total number of samples in malignant cluster divided by total number of malignant samples. In the case of k-means, cluster 1 is predominantly maligned. There are a total of 212 maligned cases. 175/212 = 0.825. In the case of hclust, cluster 1 is also the predominantly maligned one. 188/212 = 0.887. Hclust therefore is more sensitive. 
+Specificity on the other hand is the proportion of benign samples in the cluster identified as predominantly benign that are known to be benign. In the case of kmeans, cluster 2 is predominantly benign and there are 357 overall benign cases. 343/357 = 0.961. On the other hand, in the case of hclust, cluster 2 is also the predominantly benign one. 329/357 = 0.922. Clearly, kmeans is more specific. 
+## 7. Prediction
+
+We will use the predict() function that will take our PCA model from before and new cancer cell data and project that data onto our PCA space.
+
+```{r}
+#url <- "new_samples.csv"
+url <- "https://tinyurl.com/new-samples-CSV"
+new <- read.csv(url)
+npc <- predict(wisc.pr, newdata=new)
+npc
+```
+
+```{r}
+plot(wisc.pr$x[,1:2], col=g)
+points(npc[,1], npc[,2], col="blue", pch=16, cex=3)
+text(npc[,1], npc[,2], c(1,2), col="white")
+```
+
+The greater range and magnitude of PC values taken by patients belonging to section 2 rather than 1 suggests that it has a greater influence on PC1 and 2, and hence is most likely to include conditions and factors that scientists are yet to research on. Therefore, patient 2 should be prioritized for follow up. 
+
+```{r}
+sessionInfo()
+```
+

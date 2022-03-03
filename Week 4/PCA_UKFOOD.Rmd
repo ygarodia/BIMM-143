@@ -1,0 +1,271 @@
+---
+title: "PCA Week 6"
+author: "Yash Garodia"
+date: "09/02/2022"
+output: pdf_document
+---
+
+##1. PCA of UK Data 
+
+> First we will read the provided UK_foods.csv input file (note we can read this directly from the following tinyurl short link: “https://tinyurl.com/UK-foods”.
+
+```{r}
+url<- "https://tinyurl.com/UK-foods"
+x <- read.csv(url)
+```
+
+> Q1. How many rows and columns are in your new data frame named x? What R functions could you use to answer this questions?
+
+```{r}
+nrow(x)
+ncol(x)
+dim(x)
+#There are 17 rows and 5 columns. You can use the nrow() function to find the number of rows and ncol() to find the number of columns. Alternatively, if you want both number of rows and columns to be shown, then you can use the dim() funciton and that will also show the number of rows and columns.  
+```
+> It is always a good idea to examine your imported data to make sure it meets your expectations. At this stage we want to make sure that no odd things have happened during the importing phase that will come back to haunt us later.
+For this task we can use the View() function to display all the data (in a new tab in RStudio) or the head() and tail() functions to print only a portion of the data (by default 6 rows from either the top or bottom of the dataset respectively).
+
+```{r}
+#View(x)
+# To Preview the first 6 rows, we use the head() function
+head(x)
+```
+> Hmm, it looks like the row-names here were not set properly as we were expecting 4 columns (one for each of the 4 countries of the UK - not 5 as reported from the dim() function).
+Here it appears that the row-names are incorrectly set as the first column of our x data frame (rather than set as proper row-names). This is very common error. Lets try to fix this up with the following code, which sets the rownames() to the first column and then removes the troublesome first column (with the -1 column index):
+
+```{r}
+#minus indexing used to remove the specific row or column
+#The rownames() functionw will remove the name of the first column in the header
+rownames(x) <- x[,1]
+#The function below will remove the first column as a whole. 
+x <- x[,-1]
+head(x)
+```
+>This looks much better, now lets check the dimensions again:
+
+```{r}
+dim(x)
+```
+> These are the right dimensions we are looking for! 
+> An alternative approach to setting the correct row-names in this case would be to read the data filie again and this time set the row.names argument of read.csv() to be the first column (i.e. use argument setting row.names=1)
+
+```{r}
+#This function will set the first row as the first set of columns
+x <- read.csv(url, row.names = 1)
+head(x)
+```
+> Q2. Which approach to solving the ‘row-names problem’ mentioned above do you prefer and why? Is one approach more robust than another under certain circumstances?
+
+I prefer the second approach involving the use of row.names because it is faster and more robust than the other. Also because if you run the first code (x <- x[,-1]) more than once even by mistake then you lose another column. In the second approach, there is no scope for such an error. 
+
+> A cursory glance over the numbers in this table does not reveal much of anything. Indeed in general it is difficult to extract meaning in regard to major differences and trends from any given array of numbers. Generating regular bar-plots and various pairwise plots does not help too much either:
+
+```{r}
+barplot(as.matrix(x), beside = T, col = rainbow(nrow(x)))
+```
+> Q3: Changing what optional argument in the above barplot() function results in the following plot?
+
+```{r}
+#In order to solve this problem, we must look at how we want our barplot to be in comparison to what it is now. We want to stack the bars for each country. 
+#?barplot
+#The documentation for barplot suggests that changing the beside argument from true to false should stack the bars. Lets try it out: 
+barplot(as.matrix(x), beside = F, col = rainbow(nrow(x)))
+```
+This is the result we were looking for! So the answer to the question is that we change the beside argument from True to False. 
+> Q5: Generating all pairwise plots may help somewhat. Can you make sense of the following code and resulting figure? What does it mean if a given point lies on the diagonal for a given plot?
+
+```{r}
+pairs(x, col=rainbow(10), pch=16)
+```
+The displayed code creates matrices of scatterplots that look at all possible combinations of all pairs of countries against each other. In the first row, England is the y axis for all, while Wales is on the x axis for the second plot, Scotland for the third and N. Ireland for fourth. If the given point lies on the diagonal, it means that equal amounts of the food (the variable in this case) is being consumed by people from both countries. 
+
+> Q6. What is the main differences between N. Ireland and the other countries of the UK in terms of this data-set?
+
+There are much fewer data points on the diagonal for N.Ireland with other countries. 
+
+> Even relatively small datasets can prove chalanging to interpertate Given that it is quite difficult to make sense of even this relatively small data set. Hopefully, we can clearly see that a powerful analytical method is absolutely necessary if we wish to observe trends and patterns in larger datasets.
+
+#PCA to The Rescue!
+>We need some way of making sense of the above data. Are there any trends present which are not obvious from glancing at the array of numbers?
+Lets try using PCA plot using the base prcomp() function: 
+
+```{r}
+pca <- prcomp(t(x))
+summary(pca)
+```
+> The summary print-out above indicates that PC1 accounts for more than 67% of the sample variance, PC2 29% and PC3 3%. Collectively PC1 and PC2 together capture 96% of the original 17 dimensional variance. Thus these first two new principal axis (PC1 and PC2) represent useful ways to view and further investigate our data set. Lets start with a simple plot of PC1 vs PC2.
+
+> Q7. Complete the code below to generate a plot of PC1 vs PC2. The second line adds text labels over the data points.
+
+```{r}
+plot(pca$x[,1], pca$x[,2], xlab = "PC1", ylab = "PC2", xlim = c(-270,500))
+text(pca$x[,1], pca$x[,2], colnames(x))
+```
+> Q8. Customize your plot so that the colors of the country names match the colors in our UK and Ireland map and table at start of this document.
+
+```{r}
+#First we create a variable to which we assign the colors. Colors are assigned in order of the countries on the table, so England first, then Wales, and so on. 
+country_cols <- c("yellow", "red", "blue", "green") 
+plot(pca$x[,1], pca$x[,2], xlab = "PC1", ylab = "PC2", xlim = c(-270,500))
+text(pca$x[,1], pca$x[,2], colnames(x), col = country_cols)
+```
+> To calculate how much variation in the original data each PC accounts for: 
+
+```{r}
+v <- round(pca$sdev^2/sum(pca$sdev^2)*100)
+v
+```
+> Or for the second row: 
+
+```{r}
+z <- summary(pca)
+z$importance
+```
+> This information can be summarized in a plot of the variances (eigenvalues) with respect to the principal component number (eigenvector number), which is given below.
+
+```{r}
+barplot(v, xlab = "Principal Component", ylab = "Percent Variation")
+```
+
+#Digging deeper (variable loadings)
+
+> We can also consider the influence of each of the original variables upon the principal components (typically known as loading scores). This information can be obtained from the prcomp() returned $rotation component. It can also be summarized with a call to biplot(), see below:
+
+```{r}
+#Lets focus on PC1 as it accounts for more than 90% of variance 
+par(mar = c(10, 3, 0.35, 0))
+barplot(pca$rotation[,1], las = 2)
+```
+> Here we see observations (foods) with the largest positive loading scores that effectively “push” N. Ireland to right positive side of the plot (including Fresh_potatoes and Soft_drinks).
+We can also see the observations/foods with high negative scores that push the other countries to the left side of the plot (including Fresh_fruit and Alcoholic_drinks).
+
+> Q9: Generate a similar ‘loadings plot’ for PC2. What two food groups feature prominantely and what does PC2 mainly tell us about?
+
+```{r}
+#To change from PC1 to PC2 we just change the desired column from 1 to 2. 
+par(mar = c(10, 3, 0.35, 0))
+barplot(pca$rotation[,2], las = 2)
+```
+From this loadings plot, we can see that fresh potatoes and soft drinks feature prominently. This suggests that fresh potatoes and soft drinks are the primary variables driving PC2.Scotland has the highest level of soft drink consumption, explaining why it is at the bottom of the plot as soft drinks have a high negative score. Wales have the lowest soft drink consumption so they are at the top. Despite having high levels of soft drink consumption, the fact that N. Ireland also has high fresh potato consumption causes it to be pushed roughly towards 0 as the high negative and positive score almost completely cancel out; the fact that they have the highest potato consumption causes their score to be slightly above 0. England has moderate levels of both fresh potato consumption and soft drink consumption, explaining why they are at a height of 0.   
+
+#Biplots
+
+> Another way to see this information together with the main PCA plot is in a so-called biplot:
+
+```{r}
+## The inbuilt biplot() can be useful for small datasets 
+biplot(pca)
+```
+> Observe here that there is a central group of foods (red arrows) around the middle of each principal component, with four on the periphery that do not seem to be part of the group. Recall the 2D score plot (Figure above), on which England, Wales and Scotland were clustered together, whilst Northern Ireland was the country that was away from the cluster. Perhaps there is some association to be made between the four variables that are away from the cluster in the main PCA plot and the country that is located away from the rest of the countries i.e. Northern Ireland. A look at the original data in Table 1 reveals that for the three variables, Fresh potatoes, Alcoholic drinks and Fresh fruit, there is a noticeable difference between the values for England, Wales and Scotland, which are roughly similar, and Northern Ireland, which is usually significantly higher or lower.
+
+##PCA of RNA-seq data
+
+> RNA-seq results often contain a PCA (or related MDS plot). Usually we use these graphs to verify that the control samples cluster together. However, there’s a lot more going on, and if you are willing to dive in, you can extract a lot more information from these plots. The good news is that PCA only sounds complicated. Conceptually, as we have hopefully demonstrated here and in the lecture, it is readily accessible and understandable.
+> In this example, a small RNA-seq count data set (available from the class website (expression.csv and the tinyurl short link: “https://tinyurl.com/expression-CSV” ) is read into a data frame called rna.data where the columns are individual samples (i.e. cells) and rows are measurements taken for all the samples (i.e. genes).
+
+```{r}
+#Importing dataset from the URL
+url2 <- "https://tinyurl.com/expression-CSV"
+rna.data <- read.csv(url2, row.names = 1)
+rna.data
+```
+> Q10: How many genes and samples are in this data set?
+
+Genes are rows and samples are columns. 
+
+```{r}
+dim(rna.data)
+```
+There are 100 rows and 11 columns. 
+
+> Generating barplots etc. to make sense of this data is really not an exciting or worthwhile option to consider. So lets do PCA and plot the results:
+
+```{r}
+## Again we have to take the transpose of our data 
+pca <- prcomp(t(rna.data), scale=TRUE)
+## Simple un polished plot of pc1 and pc2
+plot(pca$x[,1], pca$x[,2], xlab="PC1", ylab="PC2")
+```
+```{r}
+summary(pca)
+```
+A quick barplot summary of this Proportion of Variance for each PC can be obtained by calling the plot() function directly on our prcomp result object.
+
+```{r}
+plot(pca, main = "Quick Scree Plot")
+```
+Let’s make the above scree plot ourselves and in so doing explore the object returned from prcomp() a little further. We can use the square of pca$sdev, which stands for “standard deviation”, to calculate how much variation in the original data each PC accounts for:
+
+```{r}
+#Variance captured per PC 
+pca.var <- pca$sdev^2
+#Percentage variance is often more informative to look at
+pca.var.per <- round(pca.var/sum(pca.var)*100,1)
+pca.var.per
+```
+We can use this to generate our own scree-plot like this
+
+```{r}
+barplot(pca.var.per, main = "Scree Plot", names.arg = paste0("PC", 1:10), xlab = "Principal Component", ylab = "Percent Variation")
+```
+
+> Now lets make our main PCA plot a bit more attractive and useful…
+
+```{r}
+colvec <- colnames(rna.data)
+colvec[grep("wt",colvec)] <- "red"
+colvec[grep("ko",colvec)] <- "blue"
+
+plot(pca$x[,1], pca$x[,2], col = colvec, pch = 16, xlab = paste0 ("PC (", pca.var.per[1], "%)"), ylab = paste0("PC (", pca.var.per[2], "%)"))
+
+text(pca$x[,1], pca$x[,2], labels = colnames(rna.data), pos = c(rep(4,5), rep(2,5)))
+```
+#Using ggplot 
+> We could use the ggplot2 package here but we will first need a data.frame as input for the main ggplot() function. This data.frame will need to contain our PCA results (specifically pca$x) and additional columns for any other aesthetic mappings we will want to display. We will build this step by step below:
+
+```{r}
+library(ggplot2)
+
+df <- as.data.frame(pca$x)
+
+#our first basic plot 
+ggplot(df) + aes(PC1, PC2) + geom_point()
+```
+> If we want to add a condition specific color and perhaps sample label aesthetics for wild-type and knock-out samples we will need to have this information added to our data.frame:
+
+```{r}
+# Add a 'wt' and 'ko' "condition" column
+df$samples <- colnames(rna.data)
+df$condition <- substr(colnames(rna.data), 1, 2)
+
+p <- ggplot(df) + aes(PC1, PC2, label = samples, condition) + geom_label(show.legend = FALSE)
+
+p
+```
+And finally add some spit and polish
+
+```{r}
+p + labs(title = "PCA of RNAseq Data", subtitle = "PC1 clearly separates wild type from knock out samples", x = paste0("PC1(", pca.var.per[1], "%)"), y = paste0("PC2 (", pca.var.per[2], "%)"), caption = "BIMM 143 example data") + theme_bw()
+```
+
+#Gene Loadings
+> For demonstration purposes let’s find the top 10 measurements (genes) that contribute most to pc1 in either direction (+ or -).
+
+```{r}
+loading_scores <- pca$rotation[,1]
+
+#Find the top 10 measurements (genes) that contribute most to PC1 in either direction (+ or -)
+gene_scores <- abs(loading_scores)
+gene_scores_ranked <- sort(gene_scores, decreasing = TRUE)
+
+## show the names of the top 10 genes
+top_10_genes <- names(gene_scores_ranked[1:10])
+top_10_genes
+```
+> These may be the genes that we would like to focus on for further analysis (if their expression changes are significant - we will deal with this and further steps of RNA-Seq analysis in subsequent classes).
+
+```{r}
+sessionInfo()
+```
+
+

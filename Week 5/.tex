@@ -1,0 +1,95 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\author{}
+\date{\vspace{-2.5em}}
+
+\usepackage{amsmath,amssymb}
+\usepackage{lmodern}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\hypersetup{
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+\urlstyle{same} % disable monospaced font for URLs
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+
+\begin{document}
+
+library(ggplot2) ggplot(cars) ggplot(cars) + aes(x = speed, y = dist)
+ggplot(cars) + aes(x = speed, y = dist) + geom\_point() ggplot(cars) +
+aes(x = speed, y = dist) + geom\_point()+geom\_smooth() ggplot(cars) +
+aes(x = speed, y = dist) + geom\_point()+geom\_smooth() + theme\_bw() +
+labs(title = ``Speed Distance Relationship Between Cars'', subtitle =
+``Random survey 2020'') ggplot(cars) + aes(x = speed, y = dist) +
+geom\_point()+geom\_smooth() + theme\_bw() + labs(title = ``Speed
+Distance Relationship Between Cars'', subtitle = ``Random survey 2020'',
+x = ``Speed (mph)'', y = ``Distance (m)'', caption = ``dataset :cars'')
+url \textless-
+``\url{https://bioboot.github.io/bimm143_S20/class-material/up_down_expression.txt}''
+genes \textless- read.delim(url) head(genes) nrow(genes) ncol(genes)
+colnames(genes) summary(genes) table(geness\(state) table(genes\)state)
+table(genes\$State) ggplot(data = genes) + aes(x = Condition1,Y =
+Condition2) + geom\_point() ggplot(data = genes) + aes(x = Condition1,Y
+= Condition2) + geom\_point() ggplot(data = genes) + aes(x =
+Condition1,y = Condition2) + geom\_point() p \textless- ggplot(data =
+genes) + aes(x = Condition1,y = Condition2, col = State) + geom\_point()
+p p + scale\_color\_manual(``blue'', ``gray'', ``red'') p +
+scale\_color\_manual(values = c(``blue'', ``gray'', ``red''))
+p\textless-p + scale\_color\_manual(values = c(``blue'', ``gray'',
+``red'')) p p \textless- p + labs(title = ``Gene Expression Changes Upon
+Drug Treatment'', y = ``Drug Treatment'', x = ``Control (no drug'') p p
+\textless- p + labs(title = ``Gene Expression Changes Upon Drug
+Treatment'', y = ``Drug Treatment'', x = ``Control (no drug)'' ) p
+
+\end{document}

@@ -1,0 +1,25 @@
+---
+title: "RMarkdown Demo"
+author: "Yash Garodia"
+date: "2/4/2022"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Week 06
+This week we covered this and that and covered another thing 
+
+```{r}
+#comments will need to be behind hash marks 
+mycode <- 1:20
+sum(mycode)
+```
+```{r}
+head(mtcars)
+```
+

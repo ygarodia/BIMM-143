@@ -1,0 +1,215 @@
+---
+title: "Week 5 R Functions"
+author: "Yash Garodia"
+date: "2/4/2022"
+output: pdf_document
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This week we are introducing **R functions** and how to write our own R functions. 
+
+**Questions to answer: **
+
+> Q1. Write a function grade() to determine an overall grade from a vector of student homework
+assignment scores dropping the lowest single score. If a student misses a homework (i.e. has an
+NA value) this can be used as a score to be potentially dropped. Your final function should be
+adquately explained with code comments and be able to work on an example class gradebook
+such as this one in CSV format: “https://tinyurl.com/gradeinput” [3pts]
+
+```{r}
+# Example input vectors to start with
+student1 <- c(100, 100, 100, 100, 100, 100, 100, 90)
+student2 <- c(100, NA, 90, 90, 90, 90, 97, 80)
+student3 <- c(90, NA, NA, NA, NA, NA, NA, NA)
+```
+
+Follow the guidelines from class
+-Write a working snippet of code that solves a simple problem 
+
+```{r}
+#which element is the lowest? 
+which.min(student1)
+```
+What I want is to now exclude the lowest score from my mean calculations. 
+```{r}
+#This will return everything but the eighth element of the vector 
+student1[-8]
+```
+Now we can use the answer from which.min to return all other elements. 
+
+```{r}
+#This is our first working snippet 
+mean(student1[-which.min(student1)])
+```
+However this wouldn't work for student 2 and 3. We could try using the na.rm argument = TRUE argument but this is not very useful: 
+
+```{r}
+mean(student2, na.rm = TRUE)
+mean(student3, na.rm = TRUE)
+```
+This won't be fair as even though student 3 has only given one hw, he would have an average of 90 while student 2 has given all but one hw and he would have a score of 91. Not a good approach, this is unfair.
+
+Another approach is to mask i.e replace all NA values with 0. 
+First we need to find the NA elements of the vector. 
+How do we find the NA elements?
+
+```{r}
+x <- student2
+is.na(x)
+which(is.na(x))
+```
+Now we have identified the NA elements. We want to "mask them". Replace them with zero? 
+
+```{r}
+x[which(is.na(x))] <- 0
+x
+```
+This works well. We can simplify this: 
+
+```{r}
+x[is.na(x)] <- 0 
+x
+mean(x)
+```
+Recall that we have to drop the lowest score now.. 
+
+```{r}
+x[is.na(x)] <- 0 
+mean( x[-which.min(x)])
+```
+Applying this to student 3: 
+
+```{r}
+x <- student3
+x[is.na(x)] <- 0 
+mean( x[-which.min(x)])
+```
+The answer is no longer 90, which makes perfect sense. Now we are essentially there with your working snippet! 
+
+##Now we make our function
+
+
+Take the snippet and turn it into a function. Remember that every function has 3 parts
+
+-A name, in our case `grade()`
+-Input arguments, a vector of student scores 
+-The body i.e our working snippet of code 
+
+Using RStudio, I will select `Code > Extract Function`
+```{r}
+grade <- function(x) {
+  x[is.na(x)] <- 0 
+  mean( x[-which.min(x)])
+}
+```
+
+```{r}
+grade(student1)
+grade(student2)
+grade(student3)
+```
+This looks great! We now need to add comments to explain this to our future selves and others who would like to use this function.
+
+```{r}
+#' Calculate the average score for a vector of student scores, dropping the lowest score. Missing values will be treated as 0.
+#'
+#' @param x a numeric vector of homework scores 
+#'
+#' @return Average score 
+#' @export
+#'
+#' @examples
+#' student <- c(100, NA, 90, 97)
+#' grade(student)
+
+grade <- function(x) {
+  #mask NA with zero. Treat missing values as 0
+  x[is.na(x)] <- 0 
+  #exclude lowest score from mean 
+  mean( x[-which.min(x)])
+}
+```
+
+Now finally we can use our function on our "real" whole class data from the CSV input file: "https://tinyurl.com/gradeinput"
+
+```{r}
+url <- "https://tinyurl.com/gradeinput"
+gradebook <- read.csv(url, row.names = 1)
+View(gradebook)
+```
+
+We then apply the function to the gradebook, applying it to all rows (each row represents a student)
+```{r}
+apply(gradebook, 1, grade)
+```
+
+>Q2. Using your grade() function and the supplied gradebook, Who is the top scoring student
+overall in the gradebook? [3pts]
+
+To answer this question we want to use the apply function and save the results. 
+```{r}
+results <- apply(gradebook, 1, grade)
+sort(results, decreasing = TRUE)
+```
+Alternatively we can also use the which.min function. 
+
+```{r}
+which.max(results)
+```
+Either ways, we get that **Student 18 is the highest scoring student**
+
+>Q3. From your analysis of the gradebook, which homework was toughest on students (i.e. obtained the lowest scores overall? [2pts]
+
+We can try looking at mean as a way to identify the lowest scores
+
+```{r}
+ave.scores <- apply(gradebook, 2, mean, na.rm = TRUE)
+ave.scores
+which.min(ave.scores)
+```
+We can try looking at median instead as well since it is less susceptible to fluctuations due to outliers: 
+
+```{r}
+med.scores <- apply(gradebook, 2, median, na.rm = TRUE)
+med.scores
+which.min(med.scores)
+```
+Both options show different results, so we should look at the data using a boxplot to determine which homework was the hardest: 
+```{r}
+boxplot(gradebook)
+```
+The graph suggests that **hw2 is the harder homework ** because the median line is lower 
+
+>Q4. Optional Extension: From your analysis of the gradebook, which homework was most
+predictive of overall score (i.e. highest correlation with average grade score)? [1pt]
+
+In order to do this, we must use the `cor()` function. Are the final results (i.e average score for each student) correlated with the results (i.e scores) for individual homeworks - the gradebook columns? 
+First we convert the NAs to zeroes throughout the gradebook. 
+
+```{r}
+masked.gradebook <- gradebook
+masked.gradebook [is.na(masked.gradebook)] <- 0
+masked.gradebook
+```
+
+Then we look at correlation:
+```{r}
+cor(results, masked.gradebook$hw5)
+```
+However, we have to apply this across the whole vector to compare it across homeworks. Data for average of homeworks for each student is stored in results, and we are comparing the student's average to each homework score of the student. 
+
+```{r}
+apply(masked.gradebook, 2, cor, x = results)
+```
+
+From this, we see that homework 5 has the highest correlation and is the most predictive of overall student score. 
+
+>Q5. Make sure you save your Rmarkdown document and can click the “Knit” button to generate
+a PDF foramt report without errors. Finally, submit your PDF to gradescope. [1pt]
+
+Knit the document into a PDF
+
