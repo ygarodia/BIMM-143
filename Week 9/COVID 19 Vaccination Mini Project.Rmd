@@ -62,7 +62,7 @@ skimr::skim(vax)
 
 > Q5. How many numeric columns are in this dataset?
 
-There are 10 numeric columns in this dataset
+There are 9 meaningful numeric columns in this dataset, we don't consider zip_code_tabulation_area to be a numeric column. 
 
 > Q6.  Note that there are “missing values” in the dataset. How many NA values there in the persons_fully_vaccinated column?
 
