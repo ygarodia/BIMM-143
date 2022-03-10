@@ -1,0 +1,19 @@
+---
+title: "Find a gene project"
+author: "Yash Garodia"
+date: "04/03/2022"
+output: pdf_document
+---
+
+```{r}
+library(bio3d)
+sam <- read.fasta("sample.fasta")
+heat <- seqidentity(sam, normalize=TRUE, similarity=FALSE, ncore=1, nseg.scale=1)
+heatmap(heat, margins = c(8,5))
+```
+
+```{r}
+sam1 <- consensus(sam)
+blast.pdb(sam, database = 'pdb')
+```
+
