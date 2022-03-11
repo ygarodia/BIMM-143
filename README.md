@@ -1,7 +1,4 @@
 # BIMM-143
-<<<<<<< HEAD
-Bioinformatics BIMM 143 W22 at UC San Diego
-=======
 Bioinformatics BIMM 143 W22 at UC San Diego
 
 This is a store of all the work I have done at the BIMM 143 class for winter quarter. 
@@ -25,4 +22,4 @@ This is a store of all the work I have done at the BIMM 143 class for winter qua
 - Class 15 [Mini Project: Investigating Pertussis Resurgence](https://github.com/ygarodia/BIMM-143/blob/main/BIMM%20143-Pertussis%20Mini%20proj.Rmd)
 
 Thank you very much, Prof. Barry Grant for teaching us and being so supportive throughout the quarter! 
->>>>>>> b486eec01a2ef4f5fbc021ba94f493f87d4f69d6
+
