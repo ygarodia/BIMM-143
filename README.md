@@ -21,5 +21,5 @@ This is a store of all the work I have done at the BIMM 143 class for winter qua
 - Class 14 [Vaccination rate mini project](https://github.com/ygarodia/BIMM-143/blob/main/Week%209/COVID%2019%20Vaccination%20Mini%20Project.Rmd)
 - Class 15 [Mini Project: Investigating Pertussis Resurgence](https://github.com/ygarodia/BIMM-143/blob/main/BIMM%20143-Pertussis%20Mini%20proj.Rmd)
 
-Thank you very much, Prof. Barry Grant for teaching us and being so supportive throughout the quarter. 
+Thank you very much, Prof. Barry Grant for teaching us and being so supportive throughout the quarter! 
 
