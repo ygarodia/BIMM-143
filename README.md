@@ -7,7 +7,7 @@ This is a store of all the work I have done at the BIMM 143 class for winter qua
 - Class 02 [Sequence alignment fundamentals, algorithms and applications](https://github.com/ygarodia/BIMM-143/blob/main/Week%202/lab-2-BIMM143_online-form1.pdf)
 - Class 03 [(Optional extension) Advanced sequence alignment and database searching](https://github.com/ygarodia/BIMM-143/blob/main/Week%203/Lab%203%20BIMM%20143.pdf)
 - Class 03 [PSSM Homework](https://github.com/ygarodia/BIMM-143/blob/main/Week%203/BIMM%20143%20HW3%20PSSM.pdf)
-- Class 04 [Bioinformatics data analysis with R] - No Submission
+- Class 04 [Bioinformatics data analysis with R] No Submission
 - Class 05 [Data exploration and visualization in R](https://github.com/ygarodia/BIMM-143/blob/main/Week%205/class05.R)
 - Class 06 [R functions and R packages from CRAN and BioConductor](https://github.com/ygarodia/BIMM-143/blob/main/Week%205/R%20functions%20(Week%205).Rmd)
 - Class 06 [Supplemental Information](https://github.com/ygarodia/BIMM-143/blob/main/Week%206/R%20Functions%20Week%206.Rmd)
